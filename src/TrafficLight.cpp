@@ -1,6 +1,8 @@
 #include <iostream>
 #include <random>
 #include "TrafficLight.h"
+#include <random>
+#include <chrono>
 
 /* Implementation of class "MessageQueue" */
 
@@ -100,14 +102,39 @@ void TrafficLight::cycleThroughPhases()
     // to the message queue using move semantics. The cycle duration should be a random value between 4 and 6 seconds. 
     // Also, the while-loop should use std::this_thread::sleep_for to wait 1ms between two cycles. 
 
+    int cycle_time = 4 + (std::rand() % 3);
+    auto t_last = std::chrono::high_resolution_clock::now();
+
+    // start with some init value
+    _currentPhase.send(TrafficLightPhase::red);
+    auto last_phase = TrafficLightPhase::red;
+
+    std::cout << "cycle time:" << cycle_time << std::endl;
 
     while(1) {
+         
+        auto t_current = std::chrono::high_resolution_clock::now();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        _currentPhase.send(TrafficLightPhase::red);
+        auto last = std::chrono::time_point_cast<std::chrono::milliseconds>(t_last).time_since_epoch().count();
+        auto current = std::chrono::time_point_cast<std::chrono::milliseconds>(t_current).time_since_epoch().count();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        _currentPhase.send(TrafficLightPhase::green);
+        auto duration = current - last;
 
+        //std::cout << "dur time:" << duration << std::endl;
+        if (duration >= cycle_time) {
+
+            if (last_phase == TrafficLightPhase::red) {
+                _currentPhase.send(TrafficLightPhase::green);
+                last_phase = TrafficLightPhase::green;
+            } else {
+                _currentPhase.send(TrafficLightPhase::red);
+                last_phase = TrafficLightPhase::red;
+            }
+
+
+        } 
+        std::this_thread::sleep_for(std::chrono::microseconds(500));
+
+        t_last = t_current; // update last for next loop
     }
 }
