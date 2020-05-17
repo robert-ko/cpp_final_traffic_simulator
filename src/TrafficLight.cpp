@@ -120,8 +120,9 @@ void TrafficLight::cycleThroughPhases()
 
         auto duration = current - last;
 
-        //std::cout << "dur time:" << duration << std::endl;
         if (duration >= cycle_time) {
+        
+            std::cout << "dur time:" << duration << std::endl;
 
             if (last_phase == TrafficLightPhase::red) {
                 _currentPhase.send(TrafficLightPhase::green);
@@ -131,10 +132,11 @@ void TrafficLight::cycleThroughPhases()
                 last_phase = TrafficLightPhase::red;
             }
 
+            t_last = t_current; // update last starting time
 
-        } 
-        std::this_thread::sleep_for(std::chrono::microseconds(500));
+        } else {
+            std::this_thread::sleep_for(std::chrono::microseconds(1000));
+        }
 
-        t_last = t_current; // update last for next loop
     }
 }
